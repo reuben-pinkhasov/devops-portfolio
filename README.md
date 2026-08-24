@@ -79,3 +79,26 @@ Developer WSL
               ├── Linux Node.js
               ├── Playwright
               └── Docker
+
+ubuntu-latest
+      │
+      ▼
+checkout repository
+      │
+      ▼
+install Node 22
+      │
+      ▼
+cd app
+      │
+      ▼
+npm ci
+      │
+      ▼
+install Chromium
+      │
+      ▼
+npm test
+      │
+      ▼
+1 passed ✅
