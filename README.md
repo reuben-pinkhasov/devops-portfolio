@@ -30,6 +30,35 @@
     └── workflows/
         └── ci-cd.yml
 
+devops-portfolio/
+│
+├── .github/
+│   └── workflows/
+│       └── ci.yml
+│
+├── app/
+│   ├── Dockerfile
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── server.js
+│   └── tests/
+│
+├── helm/
+│   └── myapp/
+│
+├── terraform/
+│   ├── provider.tf
+│   ├── vpc.tf
+│   ├── ecr.tf
+│   ├── eks.tf
+│   ├── iam.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── .terraform.lock.hcl
+│
+├── .gitignore
+└── README.md
+
 Pipeline:
 Developer
    │
