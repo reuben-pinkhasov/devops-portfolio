@@ -29,7 +29,54 @@
 └── .github/
     └── workflows/
         └── ci-cd.yml
+When you do:
 
+git checkout dev
+git push
+
+CI runs:
+
+dev
+ ↓
+GitHub Actions
+ ↓
+npm ci
+ ↓
+Playwright
+ ↓
+Tests
+
+Then when you create:
+
+dev → main
+
+Pull Request:
+
+dev
+ ↓
+Pull Request
+ ↓
+CI runs again
+ ↓
+Playwright passes
+ ↓
+Merge
+ ↓
+main
+
+And later we'll create a separate CD workflow that runs on main:
+
+main
+ ↓
+AWS authentication
+ ↓
+Docker build
+ ↓
+ECR push
+ ↓
+Helm upgrade/install
+ ↓
+EKS
 devops-portfolio/
 │
 ├── .github/
