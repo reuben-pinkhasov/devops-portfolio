@@ -1,0 +1,91 @@
+---
+# Source: myapp/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: myapp
+  labels:
+    helm.sh/chart: myapp-0.1.0
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/instance: myapp
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+automountServiceAccountToken: true
+
+---
+# Source: myapp/templates/service.yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: myapp
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: myapp
+
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+
+---
+# Source: myapp/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: myapp
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: myapp
+
+  template:
+    metadata:
+      labels:
+        app: myapp
+
+    spec:
+      containers:
+        - name: nginx
+          image: "nginx:1.27"
+
+          ports:
+            - containerPort: 80
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+
+            limits:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: myapp/templates/tests/test-connection.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "myapp-test-connection"
+  labels:
+    helm.sh/chart: myapp-0.1.0
+    app.kubernetes.io/name: myapp
+    app.kubernetes.io/instance: myapp
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['myapp:80']
+  restartPolicy: Never
+
