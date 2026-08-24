@@ -1,0 +1,18 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+crash.log
+crash.*.log
+
+# Node.js
+**/node_modules/
+**/playwright-report/
+**/test-results/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example

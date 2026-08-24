@@ -1,0 +1,16 @@
+{
+  "name": "devops-portfolio-app",
+  "version": "1.0.0",
+  "description": "Simple application for DevOps portfolio CI/CD project",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
