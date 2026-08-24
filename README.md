@@ -66,3 +66,16 @@ GitHub Actions
            │
            ▼
         Pods
+
+Developer WSL
+     │
+     ├── Linux Node.js
+     ├── Linux npm
+     └── Linux Playwright
+              │
+              ▼
+        GitHub Actions
+              │
+              ├── Linux Node.js
+              ├── Playwright
+              └── Docker
