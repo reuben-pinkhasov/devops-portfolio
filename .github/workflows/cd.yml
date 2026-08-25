@@ -21,19 +21,15 @@ env:
 
 jobs:
   deploy:
-    # Deploy only when CI:
-    # 1. completed successfully
-    # 2. was triggered by a push
-    # 3. the push was to main
     if: >
-      ${{ github.event.workflow_run.conclusion == 'success' &&
-          github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch == 'main' }}
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout exact CI commit
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -46,6 +42,9 @@ jobs:
 
       - name: Verify image exists in ECR
         run: |
+          echo "Checking ECR image:"
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.workflow_run.head_sha }}"
+
           aws ecr describe-images \
             --repository-name "$ECR_REPOSITORY" \
             --region "$AWS_REGION" \
@@ -79,6 +78,7 @@ jobs:
 
       - name: Show deployed image
         run: |
+          echo "Deployed image:"
           kubectl get deployment "$RELEASE_NAME" \
             -n "$NAMESPACE" \
             -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
