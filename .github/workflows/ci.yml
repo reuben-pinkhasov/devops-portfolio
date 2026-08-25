@@ -1,4 +1,4 @@
-name: CI - Playwright Tests
+name: CI - Playwright + Docker + ECR
 
 on:
   push:
@@ -9,8 +9,12 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
-  test:
+  test-and-build:
     runs-on: ubuntu-latest
 
     defaults:
@@ -36,3 +40,29 @@ jobs:
 
       - name: Run Playwright tests
         run: npm test
+
+      - name: Configure AWS credentials
+        if: success()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        if: success()
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        if: success()
+        working-directory: app
+        run: |
+          docker build \
+            -t ${{ steps.login-ecr.outputs.registry }}/devops-portfolio-app:${{ github.sha }} .
+
+      - name: Push Docker image to ECR
+        if: success()
+        working-directory: app
+        run: |
+          docker push \
+            ${{ steps.login-ecr.outputs.registry }}/devops-portfolio-app:${{ github.sha }}
