@@ -1,9 +1,10 @@
 name: CD - Deploy to EKS
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["CI - Playwright + Docker + ECR"]
+    types:
+      - completed
 
 permissions:
   id-token: write
@@ -19,6 +20,7 @@ env:
 
 jobs:
   deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -46,7 +48,7 @@ jobs:
             --namespace "$NAMESPACE" \
             --create-namespace \
             --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
-            --set image.tag="$GITHUB_SHA"
+            --set image.tag="${{ github.event.workflow_run.head_sha }}"
 
       - name: Verify deployment
         run: |
@@ -59,6 +61,7 @@ jobs:
 
       - name: Show deployed image
         run: |
+          echo "Deployed image:"
           kubectl get deployment "$RELEASE_NAME" \
             -n "$NAMESPACE" \
             -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
