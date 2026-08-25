@@ -45,6 +45,15 @@ resource "aws_iam_role_policy" "github_actions_cd_eks" {
         ]
 
         Resource = aws_eks_cluster.main.arn
+      },
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ecr:DescribeImages"
+        ]
+
+        Resource = aws_ecr_repository.app.arn
       }
     ]
   })

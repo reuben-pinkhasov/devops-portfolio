@@ -1,12 +1,9 @@
 name: CD - Deploy to EKS
 
 on:
-  workflow_dispatch:
-    inputs:
-      image_tag:
-        description: "Docker image tag"
-        required: true
-        type: string
+  push:
+    branches:
+      - main
 
 permissions:
   id-token: write
@@ -25,26 +22,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout deployment configuration
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_CD_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-
-      - name: Verify image exists in ECR
-        run: |
-          echo "Checking ECR image:"
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:${{ inputs.image_tag }}"
-
-          aws ecr describe-images \
-            --repository-name "$ECR_REPOSITORY" \
-            --region "$AWS_REGION" \
-            --image-ids imageTag="${{ inputs.image_tag }}"
 
       - name: Configure kubectl
         run: |
@@ -61,7 +46,7 @@ jobs:
             --namespace "$NAMESPACE" \
             --create-namespace \
             --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
-            --set image.tag="${{ inputs.image_tag }}"
+            --set image.tag="$GITHUB_SHA"
 
       - name: Verify deployment
         run: |
@@ -74,7 +59,6 @@ jobs:
 
       - name: Show deployed image
         run: |
-          echo "Deployed image:"
           kubectl get deployment "$RELEASE_NAME" \
             -n "$NAMESPACE" \
             -o jsonpath='{.spec.template.spec.containers[0].image}{"\n"}'
