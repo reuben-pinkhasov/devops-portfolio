@@ -22,7 +22,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
 
           ports:
-            - containerPort: 80
+            - containerPort: 3000
 
           resources:
             requests:
