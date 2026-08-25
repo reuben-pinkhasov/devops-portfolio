@@ -1,10 +1,12 @@
 name: CD - Deploy to EKS
 
 on:
-  workflow_run:
-    workflows: ["CI - Playwright + Docker + ECR"]
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -20,18 +22,29 @@ env:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout deployment configuration
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_CD_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
+
+      - name: Verify image exists in ECR
+        run: |
+          echo "Checking ECR image:"
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:${{ inputs.image_tag }}"
+
+          aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --region "$AWS_REGION" \
+            --image-ids imageTag="${{ inputs.image_tag }}"
 
       - name: Configure kubectl
         run: |
@@ -48,7 +61,7 @@ jobs:
             --namespace "$NAMESPACE" \
             --create-namespace \
             --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
-            --set image.tag="${{ github.event.workflow_run.head_sha }}"
+            --set image.tag="${{ inputs.image_tag }}"
 
       - name: Verify deployment
         run: |
