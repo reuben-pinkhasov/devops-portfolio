@@ -1,11 +1,12 @@
 name: CD - Deploy to EKS
 
 on:
-  workflow_run:
-    workflows:
-      - CI - Playwright + Docker + ECR
-    types:
-      - completed
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Docker image tag"
+        required: true
+        type: string
 
 permissions:
   id-token: write
@@ -21,18 +22,13 @@ env:
 
 jobs:
   deploy:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.event == 'push' &&
-      github.event.workflow_run.head_branch == 'main'
-
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout exact CI commit
+      - name: Checkout deployment configuration
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -43,12 +39,12 @@ jobs:
       - name: Verify image exists in ECR
         run: |
           echo "Checking ECR image:"
-          echo "$ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.workflow_run.head_sha }}"
+          echo "$ECR_REGISTRY/$ECR_REPOSITORY:${{ inputs.image_tag }}"
 
           aws ecr describe-images \
             --repository-name "$ECR_REPOSITORY" \
             --region "$AWS_REGION" \
-            --image-ids imageTag="${{ github.event.workflow_run.head_sha }}"
+            --image-ids imageTag="${{ inputs.image_tag }}"
 
       - name: Configure kubectl
         run: |
@@ -65,7 +61,7 @@ jobs:
             --namespace "$NAMESPACE" \
             --create-namespace \
             --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
-            --set image.tag="${{ github.event.workflow_run.head_sha }}"
+            --set image.tag="${{ inputs.image_tag }}"
 
       - name: Verify deployment
         run: |
