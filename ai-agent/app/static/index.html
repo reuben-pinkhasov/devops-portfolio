@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevOps AI Troubleshooting Agent</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            background: #f4f6f8;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 24px 32px;
+        }
+
+        header h1 {
+            margin: 0 0 6px 0;
+            font-size: 25px;
+        }
+
+        header p {
+            margin: 0;
+            color: #9ca3af;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 7px;
+            padding: 12px 22px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #status {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 17px;
+        }
+
+        .severity {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .critical {
+            color: #dc2626;
+        }
+
+        .high {
+            color: #ea580c;
+        }
+
+        .medium {
+            color: #d97706;
+        }
+
+        .low {
+            color: #16a34a;
+        }
+
+        .info {
+            color: #2563eb;
+        }
+
+        .metric {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .incident-title {
+            font-size: 23px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .summary {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+
+        ul {
+            padding-left: 22px;
+        }
+
+        li {
+            margin-bottom: 9px;
+            line-height: 1.45;
+        }
+
+        .cause {
+            background: #f9fafb;
+            border-left: 4px solid #2563eb;
+            padding: 15px;
+            line-height: 1.5;
+        }
+
+        .warning {
+            background: #fff7ed;
+            border-left: 4px solid #f97316;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .validation-pass {
+            color: #15803d;
+            font-weight: 700;
+        }
+
+        .validation-fail {
+            color: #dc2626;
+            font-weight: 700;
+        }
+
+        .step {
+            padding: 12px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step-number {
+            font-weight: 700;
+            margin-right: 7px;
+        }
+
+        pre {
+            background: #111827;
+            color: #e5e7eb;
+            padding: 18px;
+            border-radius: 7px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .top-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 20px;
+            }
+
+            .container {
+                padding: 0 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>DevOps AI Troubleshooting Agent</h1>
+    <p>Kubernetes • AWS • CloudWatch • Amazon Bedrock</p>
+</header>
+
+<div class="container">
+
+    <div class="actions">
+
+        <button id="investigateButton"
+                onclick="runInvestigation()">
+            Run Investigation
+        </button>
+
+        <span id="status">
+            Ready
+        </span>
+
+    </div>
+
+
+    <div id="results" class="hidden">
+
+        <!-- SUMMARY METRICS -->
+
+        <div class="top-grid">
+
+            <div class="card">
+
+                <h2>Severity</h2>
+
+                <div id="severity"
+                     class="severity">
+                    -
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <h2>Confidence</h2>
+
+                <div id="confidence"
+                     class="metric">
+                    -
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INCIDENT -->
+
+        <div class="card">
+
+            <h2>Incident</h2>
+
+            <div id="incidentTitle"
+                 class="incident-title">
+                -
+            </div>
+
+            <div id="summary"
+                 class="summary">
+                -
+            </div>
+
+        </div>
+
+
+        <!-- OBSERVED -->
+
+        <div class="card">
+
+            <h2>Observed Facts</h2>
+
+            <ul id="observed">
+            </ul>
+
+        </div>
+
+
+        <!-- ROOT CAUSE -->
+
+        <div class="card">
+
+            <h2>Root Cause Assessment</h2>
+
+            <div id="rootCause"
+                 class="cause">
+                -
+            </div>
+
+        </div>
+
+
+        <!-- IMPACT -->
+
+        <div class="card">
+
+            <h2>Impact</h2>
+
+            <ul id="impact">
+            </ul>
+
+        </div>
+
+
+        <!-- NEXT INVESTIGATION -->
+
+        <div class="card">
+
+            <h2>Next Investigation / Remediation</h2>
+
+            <div id="nextSteps">
+            </div>
+
+        </div>
+
+
+        <!-- VALIDATION -->
+
+        <div class="card">
+
+            <h2>AI Validation</h2>
+
+            <div id="validation">
+            </div>
+
+        </div>
+
+
+        <!-- RAW JSON -->
+
+        <div class="card">
+
+            <details>
+
+                <summary>
+                    View Full JSON Report
+                </summary>
+
+                <pre id="rawJson"></pre>
+
+            </details>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+async function runInvestigation() {
+
+    const button =
+        document.getElementById(
+            "investigateButton"
+        );
+
+    const status =
+        document.getElementById(
+            "status"
+        );
+
+    const results =
+        document.getElementById(
+            "results"
+        );
+
+
+    button.disabled = true;
+
+    button.textContent =
+        "Investigating...";
+
+    status.textContent =
+        "Collecting Kubernetes and AWS evidence...";
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/investigate",
+                {
+                    method: "POST"
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                `HTTP ${response.status}`
+            );
+
+        }
+
+
+        const report =
+            await response.json();
+
+
+        renderReport(report);
+
+
+        results.classList.remove(
+            "hidden"
+        );
+
+
+        status.textContent =
+            "Investigation completed.";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        status.textContent =
+            "Investigation failed: "
+            + error.message;
+
+    } finally {
+
+        button.disabled = false;
+
+        button.textContent =
+            "Run Investigation";
+
+    }
+}
+
+
+function renderReport(report) {
+
+    const ai =
+        report.ai_analysis || {};
+
+
+    // --------------------------------------------------
+    // SEVERITY
+    // --------------------------------------------------
+
+    const severity =
+        ai.severity || "UNKNOWN";
+
+
+    const severityElement =
+        document.getElementById(
+            "severity"
+        );
+
+
+    severityElement.textContent =
+        severity;
+
+
+    severityElement.className =
+        "severity "
+        + severity.toLowerCase();
+
+
+    // --------------------------------------------------
+    // CONFIDENCE
+    // --------------------------------------------------
+
+    const confidence =
+        ai.confidence;
+
+
+    let confidenceText =
+        "N/A";
+
+
+    if (
+        typeof confidence ===
+        "number"
+    ) {
+
+        confidenceText =
+            Math.round(
+                confidence * 100
+            ) + "%";
+
+    }
+
+
+    document.getElementById(
+        "confidence"
+    ).textContent =
+        confidenceText;
+
+
+    // --------------------------------------------------
+    // INCIDENT
+    // --------------------------------------------------
+
+    document.getElementById(
+        "incidentTitle"
+    ).textContent =
+        ai.title ||
+        "Unknown incident";
+
+
+    document.getElementById(
+        "summary"
+    ).textContent =
+        ai.summary ||
+        "No summary available.";
+
+
+    // --------------------------------------------------
+    // OBSERVED FACTS
+    // --------------------------------------------------
+
+    const observed =
+        document.getElementById(
+            "observed"
+        );
+
+
+    observed.innerHTML = "";
+
+
+    let facts =
+        ai.confirmed_facts;
+
+
+    if (!Array.isArray(facts)) {
+
+        facts =
+            ai.evidence || [];
+
+    }
+
+
+    facts
+        .slice(0, 5)
+        .forEach(
+            fact => {
+
+                const li =
+                    document.createElement(
+                        "li"
+                    );
+
+                li.textContent =
+                    fact;
+
+                observed.appendChild(
+                    li
+                );
+
+            }
+        );
+
+
+    // --------------------------------------------------
+    // ROOT CAUSE
+    // --------------------------------------------------
+
+    const rootCause =
+        document.getElementById(
+            "rootCause"
+        );
+
+
+    rootCause.textContent =
+        ai.root_cause ||
+        "Root cause not yet confirmed.";
+
+
+    // --------------------------------------------------
+    // IMPACT
+    // --------------------------------------------------
+
+    const impact =
+        document.getElementById(
+            "impact"
+        );
+
+
+    impact.innerHTML = "";
+
+
+    let impactItems =
+        ai.impact;
+
+
+    if (!Array.isArray(
+        impactItems
+    )) {
+
+        impactItems =
+            impactItems
+                ? [impactItems]
+                : [];
+
+    }
+
+
+    impactItems
+        .slice(0, 4)
+        .forEach(
+            item => {
+
+                const li =
+                    document.createElement(
+                        "li"
+                    );
+
+                li.textContent =
+                    item;
+
+                impact.appendChild(
+                    li
+                );
+
+            }
+        );
+
+
+    // --------------------------------------------------
+    // NEXT INVESTIGATION
+    // --------------------------------------------------
+
+    const nextSteps =
+        document.getElementById(
+            "nextSteps"
+        );
+
+
+    nextSteps.innerHTML = "";
+
+
+    let steps =
+        ai.next_investigation;
+
+
+    if (!Array.isArray(steps)) {
+
+        steps =
+            ai.remediation || [];
+
+    }
+
+
+    steps
+        .slice(0, 6)
+        .forEach(
+            (step, index) => {
+
+                const div =
+                    document.createElement(
+                        "div"
+                    );
+
+                div.className =
+                    "step";
+
+
+                div.innerHTML =
+                    `<span class="step-number">
+                        ${index + 1}.
+                     </span>
+                     ${escapeHtml(step)}`;
+
+
+                nextSteps.appendChild(
+                    div
+                );
+
+            }
+        );
+
+
+    // --------------------------------------------------
+    // VALIDATION
+    // --------------------------------------------------
+
+    const validation =
+        document.getElementById(
+            "validation"
+        );
+
+
+    const validationData =
+        ai.validation || {};
+
+
+    if (
+        validationData.valid === true
+    ) {
+
+        validation.innerHTML =
+            `<div class="validation-pass">
+                ✓ PASS — No evidence contradictions
+             </div>`;
+
+    } else {
+
+        validation.innerHTML =
+            `<div class="validation-fail">
+                ✗ Validation errors detected
+             </div>`;
+
+    }
+
+
+    if (
+        Array.isArray(
+            validationData.warnings
+        )
+        &&
+        validationData.warnings.length
+    ) {
+
+        validationData.warnings
+            .slice(0, 5)
+            .forEach(
+                warning => {
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+                    div.className =
+                        "warning";
+
+                    div.textContent =
+                        warning;
+
+                    validation.appendChild(
+                        div
+                    );
+
+                }
+            );
+
+    }
+
+
+    // --------------------------------------------------
+    // RAW JSON
+    // --------------------------------------------------
+
+    document.getElementById(
+        "rawJson"
+    ).textContent =
+        JSON.stringify(
+            report,
+            null,
+            2
+        );
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+</script>
+
+</body>
+</html>
