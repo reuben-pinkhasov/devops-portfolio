@@ -1,6 +1,8 @@
 name: CI - Playwright + Docker + ECR
 
 on:
+  workflow_dispatch:
+  
   push:
     branches:
       - dev
