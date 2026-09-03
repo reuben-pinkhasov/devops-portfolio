@@ -59,7 +59,6 @@ jobs:
         run: |
           helm upgrade --install "$RELEASE_NAME" ./helm/myapp \
             --namespace "$NAMESPACE" \
-            --create-namespace \
             --set image.repository="$ECR_REGISTRY/$ECR_REPOSITORY" \
             --set image.tag="${{ inputs.image_tag }}"
 
