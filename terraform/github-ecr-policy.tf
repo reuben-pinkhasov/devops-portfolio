@@ -1,6 +1,7 @@
 resource "aws_iam_policy" "github_actions_ecr" {
-  name        = "devops-portfolio-github-actions-ecr"
-  description = "Allow GitHub Actions to push images to the portfolio ECR repository"
+  name = "${var.project_name}-github-actions-ecr"
+
+  description = "Allow GitHub Actions to push images to ECR"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -16,6 +17,7 @@ resource "aws_iam_policy" "github_actions_ecr" {
 
         Resource = "*"
       },
+
       {
         Sid    = "ECRPush"
         Effect = "Allow"

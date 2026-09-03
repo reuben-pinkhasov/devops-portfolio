@@ -1,22 +1,18 @@
-#This creates the IAM role that allows the EKS service to manage the cluster
-#EKS cluster role
 resource "aws_iam_role" "eks_cluster" {
-  name = "devops-portfolio-eks-cluster-role"
+  name = "${var.project_name}-eks-cluster-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
 
-    Statement = [
-      {
-        Effect = "Allow"
+    Statement = [{
+      Effect = "Allow"
 
-        Principal = {
-          Service = "eks.amazonaws.com"
-        }
-
-        Action = "sts:AssumeRole"
+      Principal = {
+        Service = "eks.amazonaws.com"
       }
-    ]
+
+      Action = "sts:AssumeRole"
+    }]
   })
 }
 
@@ -24,27 +20,25 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
   role       = aws_iam_role.eks_cluster.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
-#Worker-node role
+
 resource "aws_iam_role" "eks_nodes" {
-  name = "devops-portfolio-eks-node-role"
+  name = "${var.project_name}-eks-node-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
 
-    Statement = [
-      {
-        Effect = "Allow"
+    Statement = [{
+      Effect = "Allow"
 
-        Principal = {
-          Service = "ec2.amazonaws.com"
-        }
-
-        Action = "sts:AssumeRole"
+      Principal = {
+        Service = "ec2.amazonaws.com"
       }
-    ]
+
+      Action = "sts:AssumeRole"
+    }]
   })
 }
-#Now attach the standard EKS worker-node policies:
+
 resource "aws_iam_role_policy_attachment" "eks_worker_node_policy" {
   role       = aws_iam_role.eks_nodes.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
@@ -58,4 +52,9 @@ resource "aws_iam_role_policy_attachment" "eks_cni_policy" {
 resource "aws_iam_role_policy_attachment" "eks_ecr_policy" {
   role       = aws_iam_role.eks_nodes.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+}
+
+resource "aws_iam_role_policy_attachment" "eks_ssm_policy" {
+  role       = aws_iam_role.eks_nodes.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
