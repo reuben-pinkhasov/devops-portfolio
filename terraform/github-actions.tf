@@ -17,12 +17,10 @@ resource "aws_iam_role" "github_actions" {
         Condition = {
           StringEquals = {
             "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-          }
 
-          "ForAnyValue:StringEquals" = {
             "token.actions.githubusercontent.com:sub" = [
-              "repo:${var.github_repository}:ref:refs/heads/dev",
-              "repo:${var.github_repository}:ref:refs/heads/main"
+              "repo:${var.github_repository_owner}@${var.github_owner_id}/${var.github_repository_name}@${var.github_repository_id}:ref:refs/heads/dev",
+              "repo:${var.github_repository_owner}@${var.github_owner_id}/${var.github_repository_name}@${var.github_repository_id}:ref:refs/heads/main"
             ]
           }
         }
