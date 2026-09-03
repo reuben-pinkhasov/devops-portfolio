@@ -1,6 +1,19 @@
+output "vpc_id" {
+  value = aws_vpc.main.id
+}
+
+output "nat_gateway_id" {
+  value = aws_nat_gateway.main.id
+}
+
+output "nat_eip" {
+  value = aws_eip.nat.public_ip
+}
+
 output "ecr_repository_url" {
   value = aws_ecr_repository.app.repository_url
 }
+
 output "eks_cluster_name" {
   value = aws_eks_cluster.main.name
 }
@@ -8,14 +21,21 @@ output "eks_cluster_name" {
 output "eks_cluster_endpoint" {
   value = aws_eks_cluster.main.endpoint
 }
-output "monitoring_instance_id" {
-  value = aws_instance.monitoring.id
+
+output "private_subnet_ids" {
+  value = [
+    aws_subnet.private_a.id,
+    aws_subnet.private_b.id
+  ]
 }
 
-output "monitoring_private_ip" {
-  value = aws_instance.monitoring.private_ip
+output "public_subnet_ids" {
+  value = [
+    aws_subnet.public_a.id,
+    aws_subnet.public_b.id
+  ]
 }
 
-output "monitoring_public_dns" {
-  value = aws_instance.monitoring.public_dns
+output "alb_controller_role_arn" {
+  value = aws_iam_role.alb_controller.arn
 }

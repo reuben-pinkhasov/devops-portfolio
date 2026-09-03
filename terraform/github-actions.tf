@@ -1,6 +1,5 @@
-# IAM role used by GitHub Actions through OIDC
 resource "aws_iam_role" "github_actions" {
-  name = "devops-portfolio-github-actions-role"
+  name = "${var.project_name}-github-actions-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -10,7 +9,7 @@ resource "aws_iam_role" "github_actions" {
         Effect = "Allow"
 
         Principal = {
-          Federated = "arn:aws:iam::949948071592:oidc-provider/token.actions.githubusercontent.com"
+          Federated = aws_iam_openid_connect_provider.github.arn
         }
 
         Action = "sts:AssumeRoleWithWebIdentity"
@@ -22,8 +21,8 @@ resource "aws_iam_role" "github_actions" {
 
           "ForAnyValue:StringEquals" = {
             "token.actions.githubusercontent.com:sub" = [
-              "repo:reuben-pinkhasov@308845402/devops-portfolio@1344991300:ref:refs/heads/dev",
-              "repo:reuben-pinkhasov@308845402/devops-portfolio@1344991300:ref:refs/heads/main"
+              "repo:${var.github_repository}:ref:refs/heads/dev",
+              "repo:${var.github_repository}:ref:refs/heads/main"
             ]
           }
         }
@@ -31,4 +30,3 @@ resource "aws_iam_role" "github_actions" {
     ]
   })
 }
-
